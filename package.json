@@ -11,9 +11,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "format": "prettier --write src tests scripts README.md docs/corpus-validation.md docs/translator-core.md docs/openai-translation-provider.md docs/translation-api.md docs/implementation-plan.md docs/verification.md docs/subtitle-counting-policy.md docs/qa-profile-v1.md package.json tsconfig.json next.config.ts vitest.config.ts playwright.config.ts eslint.config.mjs postcss.config.mjs --ignore-path .gitignore",
-    "format:check": "prettier --check src tests scripts README.md docs/corpus-validation.md docs/translator-core.md docs/openai-translation-provider.md docs/translation-api.md docs/implementation-plan.md docs/verification.md docs/subtitle-counting-policy.md docs/qa-profile-v1.md package.json tsconfig.json next.config.ts vitest.config.ts playwright.config.ts eslint.config.mjs postcss.config.mjs --ignore-path .gitignore",
-    "test:e2e": "playwright test",
+    "format": "prettier --write src tests scripts README.md docs/corpus-validation.md docs/translator-core.md docs/openai-translation-provider.md docs/translation-api.md docs/auth.md docs/implementation-plan.md docs/verification.md docs/subtitle-counting-policy.md docs/qa-profile-v1.md package.json tsconfig.json next.config.ts vitest.config.ts playwright.config.ts playwright.auth.config.ts eslint.config.mjs postcss.config.mjs --ignore-path .gitignore",
+    "format:check": "prettier --check src tests scripts README.md docs/corpus-validation.md docs/translator-core.md docs/openai-translation-provider.md docs/translation-api.md docs/auth.md docs/implementation-plan.md docs/verification.md docs/subtitle-counting-policy.md docs/qa-profile-v1.md package.json tsconfig.json next.config.ts vitest.config.ts playwright.config.ts playwright.auth.config.ts eslint.config.mjs postcss.config.mjs --ignore-path .gitignore",
+    "test:e2e": "playwright test && playwright test --config playwright.auth.config.ts",
     "test:corpus": "vitest run tests/corpus.test.ts",
     "qa:corpus": "node --import tsx scripts/qa-corpus.ts"
   },
@@ -21,6 +21,8 @@
     "node": ">=22.0.0"
   },
   "dependencies": {
+    "@supabase/ssr": "0.12.5",
+    "@supabase/supabase-js": "2.112.4",
     "next": "16.3.3",
     "openai": "7.8.0",
     "react": "19.2.8",

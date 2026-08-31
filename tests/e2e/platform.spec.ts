@@ -24,6 +24,10 @@ test("home lists registry tools; keyboard navigation opens QA and home roundtrip
     page.getByRole("link", { name: "VIKO Localize 홈" }),
   ).toBeFocused();
   await page.keyboard.press("Tab");
+  await expect(
+    page.getByRole("banner").getByRole("link", { name: "로그인", exact: true }),
+  ).toBeFocused();
+  await page.keyboard.press("Tab");
   const start = page.getByRole("link", { name: "Subtitle QA 시작" });
   await expect(start).toBeFocused();
   await page.keyboard.press("Enter");

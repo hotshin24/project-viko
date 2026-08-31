@@ -82,6 +82,10 @@ test("converter supports keyboard file selection, preview and download", async (
     page.getByRole("link", { name: "VIKO Localize 홈" }),
   ).toBeFocused();
   await page.keyboard.press("Tab");
+  await expect(
+    page.getByRole("banner").getByRole("link", { name: "로그인", exact: true }),
+  ).toBeFocused();
+  await page.keyboard.press("Tab");
   await expect(page.getByLabel("변환할 SRT 또는 VTT 파일")).toBeFocused();
   const chooserPromise = page.waitForEvent("filechooser");
   await page.keyboard.press("Enter");

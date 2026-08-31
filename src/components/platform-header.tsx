@@ -1,6 +1,10 @@
 import Link from "next/link";
+import { AuthStatus } from "./auth-status";
+import { verifiedEmail } from "../lib/supabase/server";
+import { supabaseConfig } from "../lib/supabase/config";
 
-export function PlatformHeader({ toolName }: { toolName?: string }) {
+export async function PlatformHeader({ toolName }: { toolName?: string }) {
+  const email = await verifiedEmail();
   return (
     <>
       <a className="skip-link" href="#main">
@@ -15,6 +19,7 @@ export function PlatformHeader({ toolName }: { toolName?: string }) {
           Foreign Video <span aria-hidden="true">→</span> Natural Korean
           Subtitle
         </span>
+        <AuthStatus email={email} configured={!!supabaseConfig()} />
       </header>
     </>
   );

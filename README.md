@@ -28,7 +28,7 @@ npm start
 ## 범위와 보안
 
 - Next.js App Router, React, TypeScript, Tailwind. 별도 Web Worker에서 UTF-8 파싱과 QA를 실행합니다.
-- 환경변수나 API 키는 **필요하지 않습니다**. Supabase, Vercel, AI 서비스와 연결하지 않습니다.
+- QA·Converter·Corpus에는 환경변수나 API 키가 **필요하지 않습니다**. 선택적 Supabase Auth 설정과 이메일 흐름은 [Auth 문서](docs/auth.md)를 참고하세요. 실제 서비스 연결은 기본으로 활성화하지 않습니다.
 - 파일은 브라우저 메모리에서만 읽습니다. 원본 File 바이트와 트랙의 원본 텍스트를 유지하고, 서버·분석 서비스로 전송하지 않습니다. 원문·파일명·프리셋은 탭 단위 sessionStorage에 임시 저장합니다.
 - 새로고침 시 저장된 입력으로 QA 결과를 재계산해 복원합니다. 직렬화 500,000 UTF-16 단위(약 1 MB) 한도, 저장 후 24시간까지 유효합니다. 새 파일/프리셋 선택 시 이전 저장본을 지우며, 삭제 버튼은 저장본과 현재 결과를 지웁니다. 저장 차단/용량 초과 시 QA는 계속 동작합니다. 장기 보관은 원본 파일을 사용하세요.
 - 5 MiB / 10,000 Cue는 이번 버전의 기술적 입력 제한이며 무료 플랜 정책이 아닙니다.
@@ -47,7 +47,7 @@ npm start
 
 글자 수 계약은 [계산 정책](docs/subtitle-counting-policy.md), 임계값과 Rule은 [Profile v1](docs/qa-profile-v1.md)을 참고하세요. 저장본에는 schema/profile/rule/counting 버전이 있으며 오래되거나 호환되지 않으면 복원 시 폐기합니다. 저장 데이터는 암호화된 금고가 아니며 같은 origin의 스크립트에서 접근할 수 있습니다. 공용 기기에서는 삭제 버튼을 사용하세요. 만료 검사는 복원 시 수행하며 백그라운드 물리 삭제 작업은 없습니다.
 
-E2E는 `@playwright/test`와 Chromium 한 종류를 사용합니다. 기존 127.0.0.1:3000 서버가 있으면 재사용하고, 없으면 테스트 러너가 개발 서버를 시작합니다. 브라우저 실행 파일이 없는 새 환경에서는 `npx playwright install chromium`을 한 번 실행하세요. 테스트는 합성 자막만 사용하며 trace/video/screenshot을 저장하지 않습니다. OS 파일 선택창은 Enter로 연 뒤 fixture 경로만 러너가 공급합니다. 나머지 키보드 시나리오에서는 Tab/기본 select의 키보드 문자열 검색/Enter/Space를 사용합니다.
+E2E는 `@playwright/test`와 Chromium 한 종류를 사용합니다. 임시 앱 복사본을 빌드해 설정 없음(3116)과 Auth 설정 있음(3117)을 순서대로 검사합니다. 실제 Supabase 대신 로컬 HTTP 모킹(4319)을 사용하며 기존 개발 서버나 실제 `.env`는 재사용하지 않습니다. 브라우저 실행 파일이 없는 새 환경에서는 `npx playwright install chromium`을 한 번 실행하세요. 테스트는 합성 자막만 사용하며 trace/video/screenshot을 저장하지 않습니다. OS 파일 선택창은 Enter로 연 뒤 fixture 경로만 러너가 공급합니다. 나머지 키보드 시나리오에서는 Tab/기본 select의 키보드 문자열 검색/Enter/Space를 사용합니다.
 
 ## Tool Registry 플랫폼 구조
 
@@ -59,7 +59,7 @@ E2E는 `@playwright/test`와 Chromium 한 종류를 사용합니다. 기존 127.
 
 새 도구 화면을 구현한 뒤 Registry에 설명·형식·상태와 화면 로더를 등록하면 홈 카드·공통 경로·페이지 제목이 연결됩니다. 별도 메뉴나 라우트 switch를 수정할 필요가 없습니다. ID는 단일 kebab-case 경로 세그먼트이고 path는 `/tools/{id}`여야 합니다. Registry 등록만으로 도구의 실제 기능이 구현되지는 않습니다. 홈 컴포넌트는 QA 실행 상태나 sessionStorage를 읽지 않습니다.
 
-이번 구조 변경은 설치된 Next.js 16.3.3 문서의 App Router, 비동기 params, generateStaticParams, notFound 계약을 따릅니다. AI/로그인/결제/DB 및 준비 중 도구의 실제 기능은 추가하지 않았습니다.
+이번 구조 변경은 설치된 Next.js 16.3.3 문서의 App Router, 비동기 params, generateStaticParams, notFound 계약을 따릅니다. 이 플랫폼 구조 변경 자체에는 AI/로그인/결제/DB 및 준비 중 도구의 실제 기능을 포함하지 않았습니다. 이후 추가된 선택적 이메일 Auth는 [Auth 문서](docs/auth.md)를 참고하세요.
 
 ## Subtitle Converter
 

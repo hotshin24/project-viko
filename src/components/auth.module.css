@@ -1,0 +1,62 @@
+.status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 14px;
+}
+.email {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.card {
+  max-width: 480px;
+  margin: 48px auto;
+  padding: 28px;
+  border: 1px solid #d6dce2;
+  border-radius: 12px;
+  background: #fff;
+}
+.card h1 {
+  font-size: 28px;
+  margin-top: 0;
+}
+.tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.tabs [aria-pressed="true"] {
+  font-weight: 700;
+  text-decoration: underline;
+}
+.card form {
+  display: grid;
+  gap: 12px;
+}
+.card input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #85929e;
+  border-radius: 6px;
+}
+.card p {
+  line-height: 1.6;
+}
+.card button,
+.status button {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.card button:disabled,
+.status button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.card :focus-visible,
+.status :focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 3px;
+}

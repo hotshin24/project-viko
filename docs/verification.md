@@ -107,3 +107,7 @@ Registry에 준비 중 도구를 추가하는 것과 실제 기능 구현은 별
 - `npm run lint`, `npm run typecheck`, `npm run format:check`, `npm run build` 통과. 빌드에 QA와 Converter 두 경로가 사전 렌더링된다. 러너의 NO_COLOR/FORCE_COLOR 출력 색상 경고는 남아 있다.
 
 출력은 UTF-8/LF이며 원본 BOM·개행 포장 정보는 보존하지 않는다. VTT 메타데이터는 명시적 동의 후 제외하고 본문 태그는 문자 그대로 유지한다. 완전한 WebVTT 문법/시각 렌더링 검증은 아니며, 보수적으로 SRT 비연속 번호도 거부한다. 상세 변환 정책과 한도는 README의 Subtitle Converter 절에 기록했다.
+
+## Supabase 이메일 Auth 기반
+
+Auth 단위 테스트 47개를 포함한 전체 300개, 설정 없음 도구 E2E 15개와 로컬 HTTP Auth 모킹 E2E 3개가 통과했다. 린트·타입·포맷·프로덕션 빌드 통과. 환경변수가 없으면 Auth Client를 생성하지 않고 기존 도구는 유지한다. Proxy는 쿠키 갱신만 하며 Translation API 권한을 변경하지 않는다. 실제 프로젝트 설정과 서비스 호출은 하지 않았다. 구조·PKCE Callback·안전한 이동·격리 테스트 실행 방법과 테스트 시간 변동은 [Auth 문서](auth.md)에 기록했다.

@@ -35,6 +35,10 @@ test("keyboard-only flow: file chooser, preset, run, both filters, cue, details,
     page.getByRole("link", { name: "VIKO Localize 홈" }),
   ).toBeFocused();
   await page.keyboard.press("Tab");
+  await expect(
+    page.getByRole("banner").getByRole("link", { name: "로그인", exact: true }),
+  ).toBeFocused();
+  await page.keyboard.press("Tab");
   await expect(fileInput(page)).toBeFocused();
   await expect(fileInput(page).locator("..")).toHaveCSS(
     "outline-style",
