@@ -1,10 +1,10 @@
 # OpenAI Translation Provider
 
-기존 `TranslationProvider` 계약을 구현하는 서버 전용 어댑터다. UI, API Route, Registry 활성화는 없으며 실제 API 호출 검증도 수행하지 않는다. QA·Converter·Core의 배치 및 검증 규칙은 변경하지 않는다.
+기존 `TranslationProvider` 계약을 구현하는 서버 전용 어댑터다. UI·Registry 활성화와 실제 API 호출 검증은 하지 않는다. 후속 서버 Route 연결은 [Translation API](translation-api.md)를 참고한다. QA·Converter·Core의 배치 및 검증 규칙은 변경하지 않는다.
 
 ## 구조와 사용 경계
 
-`src/lib/translation/providers/openai.ts`의 `createOpenAITranslationProvider()`를 서버에서 생성해 기존 `translateTrack(track, provider, options)`에 전달한다. 생성만으로는 네트워크 요청이 발생하지 않는다. 호출자가 유효 Track과 원문 언어·스타일을 제공한다. 현재 앱에는 호출 경로가 없다.
+`src/lib/translation/providers/openai.ts`의 `createOpenAITranslationProvider()`를 서버에서 생성해 기존 `translateTrack(track, provider, options)`에 전달한다. 생성만으로는 네트워크 요청이 발생하지 않는다. 호출자가 유효 Track과 원문 언어·스타일을 제공한다. 서버 호출 경로는 기능 플래그로 비활성화된 `POST /api/translation`이며, UI에서는 호출하지 않는다.
 
 공식 `openai@7.8.0` SDK의 `responses.create`와 `text.format: { type: "json_schema", strict: true }`를 사용한다. 루트 `translations` 배열과 항목의 `cueId`, `text`만 허용하고 모든 필드를 required로 지정한다. JSON 런타임 검사 후 원본 ID로 순서·시각을 연결하고 기존 `validateTranslationResult`를 반드시 실행한다. 모델 배열을 정렬하거나 누락을 보완하지 않는다. 누락·중복·미등록·순서 변경·빈 번역·추가 타임코드 필드를 거부한다. `translateTrack`도 재검증하며, 후속 배치 실패 시 전체 결과가 reject된다.
 

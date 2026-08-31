@@ -11,8 +11,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "format": "prettier --write src tests scripts README.md docs/corpus-validation.md docs/translator-core.md docs/openai-translation-provider.md docs/implementation-plan.md docs/verification.md docs/subtitle-counting-policy.md docs/qa-profile-v1.md package.json tsconfig.json next.config.ts vitest.config.ts playwright.config.ts eslint.config.mjs postcss.config.mjs --ignore-path .gitignore",
-    "format:check": "prettier --check src tests scripts README.md docs/corpus-validation.md docs/translator-core.md docs/openai-translation-provider.md docs/implementation-plan.md docs/verification.md docs/subtitle-counting-policy.md docs/qa-profile-v1.md package.json tsconfig.json next.config.ts vitest.config.ts playwright.config.ts eslint.config.mjs postcss.config.mjs --ignore-path .gitignore",
+    "format": "prettier --write src tests scripts README.md docs/corpus-validation.md docs/translator-core.md docs/openai-translation-provider.md docs/translation-api.md docs/implementation-plan.md docs/verification.md docs/subtitle-counting-policy.md docs/qa-profile-v1.md package.json tsconfig.json next.config.ts vitest.config.ts playwright.config.ts eslint.config.mjs postcss.config.mjs --ignore-path .gitignore",
+    "format:check": "prettier --check src tests scripts README.md docs/corpus-validation.md docs/translator-core.md docs/openai-translation-provider.md docs/translation-api.md docs/implementation-plan.md docs/verification.md docs/subtitle-counting-policy.md docs/qa-profile-v1.md package.json tsconfig.json next.config.ts vitest.config.ts playwright.config.ts eslint.config.mjs postcss.config.mjs --ignore-path .gitignore",
     "test:e2e": "playwright test",
     "test:corpus": "vitest run tests/corpus.test.ts",
     "qa:corpus": "node --import tsx scripts/qa-corpus.ts"
