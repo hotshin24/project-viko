@@ -81,3 +81,17 @@ TypeError: Error while loading rule 'react/display-name': contextOrFilename.getF
 - 다양한 브라우저/ICU와 보조공학, 극단적으로 긴 텍스트의 실제 렌더링 부하는 추가 검증 대상이다. 5 MiB / 10,000 Cue 입력 한도를 유지했다.
 - DB/로그인/AI/영상 처리/결제/Glossary/Doctor/배포 자동화를 추가하지 않았다.
 - 다음 단계는 권리와 개인정보를 확인한 실제 자막 샘플에 대한 오탐·미탐 리뷰 및 프리셋 보정이다. 계산 계약·기대값 변경 시 버전을 함께 갱신한다.
+
+## Tool Registry 플랫폼 구조 검증 (2026-08-31)
+
+이번 작업 시작 시 작업 트리는 깨끗했고 `main`, `origin/main`, GitHub의 main/HEAD가 기준 커밋 `5b5eebb3ad1b8fec6527bce0451b30c4ea45b33e`에서 일치했다. 위의 Git 부재 기록은 초기 구현 당시의 기록이다.
+
+- `/`는 Registry의 도구 6개를 표시하는 탐색 화면이다. QA만 실행 링크가 있고 나머지 5개는 준비 중 안내와 미정인 형식만 표시한다.
+- `/tools/subtitle-qa`에서 기존 QA를 실행한다. `/tools/[toolId]`는 Registry의 available 항목만 로드하며 준비 중 및 미등록 도구는 404다. 홈·공통 Header·페이지 제목이 같은 Registry 정보를 사용한다.
+- 기존 Rule/프리셋/임계값/파서/Worker/sessionStorage 모듈·키·schema와 PRD, 패키지 의존성은 Git diff로 변경 없음을 확인했다. 기존 화면에는 Header 분리·도구명 prop·본문 포커스 대상만 적용했다.
+- `npm run lint`, `npm run typecheck`, `npm test` (8 suite / 117개), `npm run test:e2e` (Chromium 12개), `npm run format:check`, `npm run build` 통과. 빌드에서 홈은 정적, QA는 Registry의 generateStaticParams로 사전 렌더링된다.
+- E2E: 기존 QA 5개를 새 경로에서 검증했고, 홈 카드·키보드 진입·홈 왕복 및 새로고침 복원 1개, 준비 중 직접 접근 차단 5개, 미등록 경로 1개를 추가했다. 복원 비교는 innerText를 수집하므로 검증도 useInnerText를 사용한다.
+- 최초 빌드 병행 E2E에서는 홈 진입 URL 대기가 한 차례 실패했으나 단독 재실행에서 진입했고, 이후 발견한 텍스트 비교 방식 차이를 수정한 전체 실행은 통과했다. 임의 대기나 자동 retry로 실패를 숨기지 않았다. `NO_COLOR`/`FORCE_COLOR` 충돌 경고는 러너 출력 색상에 관한 환경 경고다.
+- React 점검: 홈·라우트·Header는 Server Component로 유지하고 실행 함수가 포함된 Registry 객체를 클라이언트에 직렬화하지 않는다. 선택된 화면에 도구명 문자열만 전달하며 기존 QA hooks를 변경하지 않았다.
+
+Registry에 준비 중 도구를 추가하는 것과 실제 기능 구현은 별개다. 새로 구현한 화면의 loader와 available 상태를 등록하면 홈/경로/제목이 연결되지만, 준비 중 도구의 실제 입출력 계약과 기능은 여전히 후속 범위다. 이번 변경은 커밋하거나 원격으로 push하지 않았다.

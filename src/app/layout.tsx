@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Subtitle QA · VIKO Localize",
+  title: "영상과 자막을 위한 도구 · VIKO Localize",
   description:
-    "한국어 자막의 읽기 속도, 줄 수, 타임코드를 내 기기에서 검사하세요.",
+    "Foreign Video → Natural Korean Subtitle. VIKO의 영상·자막 도구를 둘러보세요.",
 };
 export default function RootLayout({
   children,

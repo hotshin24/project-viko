@@ -25,7 +25,7 @@ async function uploadAndRun(page: Page, name: string) {
 test("keyboard-only flow: file chooser, preset, run, both filters, cue, details, delete", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/tools/subtitle-qa");
   await expect(fileInput(page)).toBeEnabled();
   // Actual Tab order from the document, without focus(), clicks or DOM event injection.
   await page.keyboard.press("Tab");
@@ -101,7 +101,7 @@ test("keyboard-only flow: file chooser, preset, run, both filters, cue, details,
 test("reload restores deterministic QA; deletion prevents resurrection", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/tools/subtitle-qa");
   await uploadAndRun(page, "overlap.srt");
   const before = await page
     .getByRole("group", { name: "QA 오류 요약" })
@@ -128,7 +128,7 @@ test("normal VTT success, invalid UTF-8 error, and no subtitle network upload", 
     if (["POST", "PUT", "PATCH"].includes(request.method()))
       uploads.push(request.url());
   });
-  await page.goto("/");
+  await page.goto("/tools/subtitle-qa");
   await uploadAndRun(page, "education-normal.vtt");
   await expect(page.getByRole("group", { name: "QA 오류 요약" })).toContainText(
     "Critical0",
@@ -151,14 +151,14 @@ test("blocked session writes never prevent a QA report", async ({ page }) => {
       throw new DOMException("quota", "QuotaExceededError");
     };
   });
-  await page.goto("/");
+  await page.goto("/tools/subtitle-qa");
   await uploadAndRun(page, "general-normal.srt");
   await expect(storageStatus(page)).toContainText("임시 저장에 실패");
   await expect(page.getByText("규칙 검사 완료", { exact: true })).toBeVisible();
 });
 
 test("incompatible and expired snapshots are discarded", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/tools/subtitle-qa");
   await uploadAndRun(page, "general-normal.srt");
   await page.evaluate(() => {
     const key = "viko:qa-session";

@@ -711,3 +711,96 @@ footer {
     flex-direction: column;
   }
 }
+
+/* Platform discovery reuses the QA palette, panels and focus treatment. */
+.current-tool {
+  font-size: 12px;
+  font-weight: 600;
+}
+.platform-home {
+  padding-bottom: 48px;
+}
+.platform-intro {
+  max-width: 760px;
+  margin-bottom: 40px;
+}
+.tool-grid {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+.tool-card {
+  height: 100%;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+}
+.tool-card h3 {
+  font-size: 19px;
+  line-height: 1.4;
+}
+.tool-card > p {
+  color: var(--muted);
+}
+.tool-status {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--muted);
+}
+.tool-status.available {
+  background: var(--soft);
+  color: var(--accent);
+}
+.tool-formats {
+  margin: auto 0 0;
+  padding-top: 8px;
+  font-size: 12px;
+}
+.tool-formats div {
+  display: flex;
+  gap: 12px;
+}
+.tool-formats dt {
+  color: var(--muted);
+}
+.tool-formats dd {
+  margin: 0;
+}
+.tool-start {
+  background: var(--accent);
+  color: white;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+.tool-start:hover {
+  background: #194a39;
+}
+.tool-unavailable {
+  padding: 10px 0;
+  font-size: 12px;
+}
+@media (max-width: 1000px) {
+  .tool-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 600px) {
+  .tool-grid {
+    grid-template-columns: 1fr;
+  }
+  .topbar {
+    gap: 16px;
+  }
+  .current-tool {
+    margin-left: auto;
+  }
+}

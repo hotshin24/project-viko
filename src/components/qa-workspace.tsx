@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import type {
   QAIssue,
   RuleId,
@@ -50,7 +49,7 @@ function IssueDetail({ entry }: { entry: QAIssue }) {
   );
 }
 
-export function QAWorkspace() {
+export function QAWorkspace({ toolName }: { toolName: string }) {
   const [profileId, setProfileId] = useState(QA_PROFILES[0].id);
   const [file, setFile] = useState<File | null>(null);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
@@ -280,25 +279,10 @@ export function QAWorkspace() {
 
   return (
     <div className="workspace">
-      <a className="skip-link" href="#main">
-        본문으로 이동
-      </a>
-      <header className="topbar">
-        <Link className="brand" href="/" aria-label="VIKO Localize 홈">
-          VIKO<span>LOCALIZE</span>
-        </Link>
-        <span className="product-direction">
-          Foreign Video <span aria-hidden="true">→</span> Natural Korean
-          Subtitle
-        </span>
-        <span className="local-badge">
-          <i /> 내 기기에서 처리
-        </span>
-      </header>
-      <main id="main">
+      <main id="main" tabIndex={-1}>
         <div className="heading">
           <div>
-            <p className="eyebrow">LOCALIZE / SUBTITLE QA</p>
+            <p className="eyebrow">LOCALIZE / {toolName}</p>
             <h1>
               고쳐야 할 자막부터, <span>명확하게.</span>
             </h1>
@@ -678,7 +662,7 @@ export function QAWorkspace() {
           </section>
         )}
         <footer>
-          <span>VIKO Localize · Subtitle QA</span>
+          <span>VIKO Localize · {toolName}</span>
           <span>결정적 규칙 검사 전용 · AI 번역 및 자동 수정 없음</span>
         </footer>
       </main>

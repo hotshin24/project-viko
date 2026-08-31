@@ -11,7 +11,7 @@ npm ci
 npm run dev
 ```
 
-터미널의 Local URL에서 파일 선택 → 프리셋 선택 → QA 검사 실행 → 오류 필터 → Cue 원문/시간/수정 안내를 확인합니다. `tests/fixtures/valid.srt`, `valid.vtt`, `broken.srt`, `broken.vtt`로 재현할 수 있습니다.
+터미널의 Local URL에서 도구 목록 → Subtitle QA 시작 → 파일 선택 → 프리셋 선택 → QA 검사 실행 → 오류 필터 → Cue 원문/시간/수정 안내를 확인합니다. `tests/fixtures/valid.srt`, `valid.vtt`, `broken.srt`, `broken.vtt`로 재현할 수 있습니다.
 
 ```sh
 npm test
@@ -48,3 +48,15 @@ npm start
 글자 수 계약은 [계산 정책](docs/subtitle-counting-policy.md), 임계값과 Rule은 [Profile v1](docs/qa-profile-v1.md)을 참고하세요. 저장본에는 schema/profile/rule/counting 버전이 있으며 오래되거나 호환되지 않으면 복원 시 폐기합니다. 저장 데이터는 암호화된 금고가 아니며 같은 origin의 스크립트에서 접근할 수 있습니다. 공용 기기에서는 삭제 버튼을 사용하세요. 만료 검사는 복원 시 수행하며 백그라운드 물리 삭제 작업은 없습니다.
 
 E2E는 `@playwright/test`와 Chromium 한 종류를 사용합니다. 기존 127.0.0.1:3000 서버가 있으면 재사용하고, 없으면 테스트 러너가 개발 서버를 시작합니다. 브라우저 실행 파일이 없는 새 환경에서는 `npx playwright install chromium`을 한 번 실행하세요. 테스트는 합성 자막만 사용하며 trace/video/screenshot을 저장하지 않습니다. OS 파일 선택창은 Enter로 연 뒤 fixture 경로만 러너가 공급합니다. 나머지 키보드 시나리오에서는 Tab/기본 select의 키보드 문자열 검색/Enter/Space를 사용합니다.
+
+## Tool Registry 플랫폼 구조
+
+- `/`: Registry의 6개 도구 탐색. QA만 사용 가능하며 준비 중 도구에는 실행 링크가 없습니다.
+- `/tools/subtitle-qa`: 기존 QA 화면. sessionStorage 키·schema·복원·삭제, Worker·Rule·프리셋은 그대로입니다. 홈 왕복과 새로고침 후 저장본을 복원합니다.
+- `/tools/[toolId]`: Registry를 조회하는 공통 서버 라우트. 준비 중/알 수 없는 ID는 404이며 실행 코드를 로드하지 않습니다.
+- `src/lib/tools/registry.ts`: ID·이름·설명·경로·상태·입출력 형식의 단일 기준입니다. `available`에는 `loadWorkspace`가 필수이고 `coming-soon`에는 금지됩니다. 미래 도구의 세부 입출력 계약은 미정으로 표시합니다. QA 출력은 화면 리포트이며 파일 다운로드를 약속하지 않습니다.
+- `src/components/platform-header.tsx`: 홈 링크·본문 건너뛰기·현재 도구명을 공유합니다. 홈과 공통 도구 라우트가 서버에서 렌더링하며 함수가 포함된 Registry 객체를 클라이언트 props로 넘기지 않습니다.
+
+새 도구 화면을 구현한 뒤 Registry에 설명·형식·상태와 화면 로더를 등록하면 홈 카드·공통 경로·페이지 제목이 연결됩니다. 별도 메뉴나 라우트 switch를 수정할 필요가 없습니다. ID는 단일 kebab-case 경로 세그먼트이고 path는 `/tools/{id}`여야 합니다. Registry 등록만으로 도구의 실제 기능이 구현되지는 않습니다. 홈 컴포넌트는 QA 실행 상태나 sessionStorage를 읽지 않습니다.
+
+이번 구조 변경은 설치된 Next.js 16.3.3 문서의 App Router, 비동기 params, generateStaticParams, notFound 계약을 따릅니다. AI/로그인/결제/DB 및 준비 중 도구의 실제 기능은 추가하지 않았습니다.
