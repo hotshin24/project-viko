@@ -1,0 +1,42 @@
+{
+  "name": "viko-localize",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --webpack",
+    "build": "next build --webpack",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "format": "prettier --write src tests scripts README.md docs/corpus-validation.md docs/implementation-plan.md docs/verification.md docs/subtitle-counting-policy.md docs/qa-profile-v1.md package.json tsconfig.json next.config.ts vitest.config.ts playwright.config.ts eslint.config.mjs postcss.config.mjs --ignore-path .gitignore",
+    "format:check": "prettier --check src tests scripts README.md docs/corpus-validation.md docs/implementation-plan.md docs/verification.md docs/subtitle-counting-policy.md docs/qa-profile-v1.md package.json tsconfig.json next.config.ts vitest.config.ts playwright.config.ts eslint.config.mjs postcss.config.mjs --ignore-path .gitignore",
+    "test:e2e": "playwright test",
+    "test:corpus": "vitest run tests/corpus.test.ts",
+    "qa:corpus": "node --import tsx scripts/qa-corpus.ts"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "next": "16.3.3",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1",
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "26.4.0",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.5",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.3.3",
+    "prettier": "3.9.6",
+    "tailwindcss": "4.3.3",
+    "tsx": "4.23.13",
+    "typescript": "6.0.3",
+    "vitest": "4.1.11"
+  }
+}

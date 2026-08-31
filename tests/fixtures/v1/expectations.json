@@ -1,0 +1,302 @@
+[
+  {
+    "file": "general-normal.srt",
+    "profileId": "ko-general",
+    "expected": []
+  },
+  {
+    "file": "education-normal.vtt",
+    "profileId": "ko-education",
+    "expected": []
+  },
+  {
+    "file": "long-korean.srt",
+    "profileId": "ko-general",
+    "expected": [
+      {
+        "cue": 1,
+        "ruleId": "CPL",
+        "severity": "Warning",
+        "currentValue": 37,
+        "threshold": 20
+      }
+    ],
+    "characters": [37]
+  },
+  {
+    "file": "fast-dialogue.srt",
+    "profileId": "ko-general",
+    "expected": [
+      {
+        "cue": 1,
+        "ruleId": "CPS",
+        "severity": "Warning",
+        "currentValue": 14,
+        "threshold": 12
+      }
+    ],
+    "characters": [14]
+  },
+  {
+    "file": "mixed-language.srt",
+    "profileId": "ko-general",
+    "expected": [],
+    "characters": [15]
+  },
+  {
+    "file": "emoji.srt",
+    "profileId": "ko-general",
+    "expected": [],
+    "characters": [10]
+  },
+  {
+    "file": "tags.vtt",
+    "profileId": "ko-general",
+    "expected": [],
+    "characters": [12]
+  },
+  {
+    "file": "sdh.srt",
+    "profileId": "ko-sdh",
+    "expected": [],
+    "characters": [21, 10]
+  },
+  {
+    "file": "overlap.srt",
+    "profileId": "ko-general",
+    "expected": [
+      {
+        "cue": 2,
+        "ruleId": "OVERLAP",
+        "severity": "Warning",
+        "currentValue": 1000,
+        "threshold": 0
+      }
+    ]
+  },
+  {
+    "file": "short-gap.srt",
+    "profileId": "ko-general",
+    "expected": [
+      {
+        "cue": 2,
+        "ruleId": "SHORT_GAP",
+        "severity": "Info",
+        "currentValue": 40,
+        "threshold": 80
+      }
+    ]
+  },
+  {
+    "file": "empty-whitespace.srt",
+    "profileId": "ko-general",
+    "expected": [
+      {
+        "cue": 1,
+        "ruleId": "EMPTY_CUE",
+        "severity": "Critical",
+        "currentValue": 0,
+        "threshold": "본문 필요"
+      },
+      {
+        "cue": 2,
+        "ruleId": "EMPTY_CUE",
+        "severity": "Critical",
+        "currentValue": 0,
+        "threshold": "본문 필요"
+      }
+    ],
+    "characters": [0, 0]
+  },
+  {
+    "file": "damaged.srt",
+    "profileId": "ko-general",
+    "expected": [
+      {
+        "cue": 1,
+        "ruleId": "INVALID_INDEX",
+        "severity": "Warning",
+        "currentValue": "x",
+        "threshold": 1
+      },
+      {
+        "cue": 1,
+        "ruleId": "INVALID_TIMECODE",
+        "severity": "Critical",
+        "currentValue": "00:61:00,000 --> 00:00:03,000",
+        "threshold": "HH:MM:SS,mmm"
+      },
+      {
+        "cue": 2,
+        "ruleId": "INVALID_DURATION",
+        "severity": "Critical",
+        "currentValue": -1000,
+        "threshold": "> 0 ms"
+      }
+    ]
+  },
+  {
+    "file": "damaged.vtt",
+    "profileId": "ko-general",
+    "expected": [
+      {
+        "cue": 1,
+        "ruleId": "INVALID_TIMECODE",
+        "severity": "Critical",
+        "currentValue": "00:60.000 --> 00:04.000",
+        "threshold": "HH:MM:SS.mmm / MM:SS.mmm"
+      },
+      {
+        "cue": 2,
+        "ruleId": "FILE_STRUCTURE",
+        "severity": "Critical",
+        "currentValue": "손상된 Cue 구조",
+        "threshold": "번호(선택) / 시간 / 본문"
+      },
+      {
+        "cue": 2,
+        "ruleId": "INVALID_TIMECODE",
+        "severity": "Critical",
+        "currentValue": "타임코드 없음",
+        "threshold": "HH:MM:SS.mmm / MM:SS.mmm"
+      }
+    ]
+  },
+  {
+    "file": "crlf.srt",
+    "profileId": "ko-general",
+    "expected": []
+  },
+  {
+    "file": "bom.srt",
+    "profileId": "ko-general",
+    "expected": []
+  },
+  {
+    "file": "no-final-newline.srt",
+    "profileId": "ko-general",
+    "expected": []
+  },
+  {
+    "file": "very-long-cue.srt",
+    "profileId": "ko-general",
+    "expected": [
+      {
+        "cue": 1,
+        "ruleId": "CPL",
+        "severity": "Warning",
+        "currentValue": 999,
+        "threshold": 20
+      },
+      {
+        "cue": 1,
+        "ruleId": "CPS",
+        "severity": "Warning",
+        "currentValue": 999,
+        "threshold": 12
+      }
+    ],
+    "characters": [999]
+  },
+  {
+    "file": "duplicate-timing.srt",
+    "profileId": "ko-general",
+    "expected": [
+      {
+        "cue": 2,
+        "ruleId": "DUPLICATE_TIMING",
+        "severity": "Warning",
+        "currentValue": "1000–3000 ms",
+        "threshold": "고유 시간 구간"
+      },
+      {
+        "cue": 2,
+        "ruleId": "OVERLAP",
+        "severity": "Warning",
+        "currentValue": 2000,
+        "threshold": 0
+      },
+      {
+        "cue": 3,
+        "ruleId": "DUPLICATE_TIMING",
+        "severity": "Warning",
+        "currentValue": "1000–3000 ms",
+        "threshold": "고유 시간 구간"
+      },
+      {
+        "cue": 3,
+        "ruleId": "OVERLAP",
+        "severity": "Warning",
+        "currentValue": 2000,
+        "threshold": 0
+      }
+    ]
+  },
+  {
+    "file": "long-duration.srt",
+    "profileId": "ko-general",
+    "expected": [
+      {
+        "cue": 1,
+        "ruleId": "LONG_DURATION",
+        "severity": "Warning",
+        "currentValue": 8000,
+        "threshold": 7000
+      }
+    ]
+  },
+  {
+    "file": "recommended-cpl.srt",
+    "profileId": "ko-general",
+    "expected": [
+      {
+        "cue": 1,
+        "ruleId": "RECOMMENDED_CPL",
+        "severity": "Info",
+        "currentValue": 17,
+        "threshold": 16
+      }
+    ],
+    "characters": [17]
+  },
+  {
+    "file": "short-duration.srt",
+    "profileId": "ko-general",
+    "expected": [
+      {
+        "cue": 1,
+        "ruleId": "SHORT_DURATION",
+        "severity": "Warning",
+        "currentValue": 500,
+        "threshold": 833
+      }
+    ]
+  },
+  {
+    "file": "max-lines.srt",
+    "profileId": "ko-general",
+    "expected": [
+      {
+        "cue": 1,
+        "ruleId": "MAX_LINES",
+        "severity": "Warning",
+        "currentValue": 3,
+        "threshold": 2
+      }
+    ]
+  },
+  {
+    "file": "invisible-whitespace.srt",
+    "profileId": "ko-general",
+    "expected": [
+      {
+        "cue": 1,
+        "ruleId": "EMPTY_CUE",
+        "severity": "Critical",
+        "currentValue": 0,
+        "threshold": "본문 필요"
+      }
+    ],
+    "characters": [0]
+  }
+]

@@ -1,0 +1,18 @@
+WEBVTT
+
+NOTE This is a comment, not a cue
+Preserved in originalText.
+
+STYLE
+::cue { color: white; }
+
+REGION
+id:main
+width:80%
+
+intro
+00:01.000 --> 00:03.000 align:start position:10%
+<v Mina><b>안녕하세요.</b></v>
+
+00:00:03.100 --> 00:00:05.500
+오늘의 강의를 시작합니다.
