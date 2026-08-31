@@ -804,3 +804,38 @@ footer {
     margin-left: auto;
   }
 }
+
+.converter-workspace {
+  padding-bottom: 48px;
+}
+.converter-panel {
+  padding: 24px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+}
+.converter-panel textarea {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font: 13px/1.7 monospace;
+  resize: vertical;
+  white-space: pre;
+}
+.converter-panel input[type="file"] {
+  max-width: 100%;
+}
+.converter-warning {
+  padding: 16px;
+  border: 1px solid var(--warning);
+  border-radius: 6px;
+}
+.converter-warning ul {
+  padding-left: 20px;
+}
+.converter-warning input {
+  margin-right: 8px;
+}

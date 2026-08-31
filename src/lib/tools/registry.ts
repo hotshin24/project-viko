@@ -75,11 +75,13 @@ export const TOOL_REGISTRY = [
   {
     id: "subtitle-converter",
     name: "Subtitle Converter",
-    description: "자막 파일 형식을 변환하는 도구를 준비하고 있습니다.",
+    description: "Cue 순서·시간·본문을 보존하며 SRT와 VTT를 변환하세요.",
     path: "/tools/subtitle-converter",
-    status: "coming-soon",
-    inputFormats: ["미정"],
-    outputFormats: ["미정"],
+    status: "available",
+    inputFormats: ["SRT", "VTT"],
+    outputFormats: ["SRT", "VTT"],
+    loadWorkspace: async () =>
+      (await import("../../components/converter-workspace")).ConverterWorkspace,
   },
 ] as const satisfies readonly ToolDefinition[];
 export type ToolId = (typeof TOOL_REGISTRY)[number]["id"];

@@ -13,8 +13,8 @@ export default function Page() {
             영상과 자막을 위한 <span>VIKO 도구 모음.</span>
           </h1>
           <p className="intro">
-            외국어 영상에서 자연스러운 한국어 자막까지. 지금은 Subtitle QA로
-            자막의 구조와 가독성을 내 기기에서 검사할 수 있습니다.
+            외국어 영상에서 자연스러운 한국어 자막까지. Subtitle QA와
+            Converter로 자막 검사와 SRT·VTT 변환을 내 기기에서 처리하세요.
           </p>
           <p className="intro">
             AI 번역·수정 및 다른 도구는 준비 중이며 아직 사용할 수 없습니다.
@@ -43,7 +43,7 @@ export default function Page() {
                       <dt>출력</dt>
                       <dd>
                         {tool.outputFormats.join(" · ")}
-                        {tool.status === "available" ? " (화면)" : ""}
+                        {tool.id === "subtitle-qa" ? " (화면)" : ""}
                       </dd>
                     </div>
                   </dl>

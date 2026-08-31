@@ -95,3 +95,15 @@ TypeError: Error while loading rule 'react/display-name': contextOrFilename.getF
 - React 점검: 홈·라우트·Header는 Server Component로 유지하고 실행 함수가 포함된 Registry 객체를 클라이언트에 직렬화하지 않는다. 선택된 화면에 도구명 문자열만 전달하며 기존 QA hooks를 변경하지 않았다.
 
 Registry에 준비 중 도구를 추가하는 것과 실제 기능 구현은 별개다. 새로 구현한 화면의 loader와 available 상태를 등록하면 홈/경로/제목이 연결되지만, 준비 중 도구의 실제 입출력 계약과 기능은 여전히 후속 범위다. 이번 변경은 커밋하거나 원격으로 push하지 않았다.
+
+## Subtitle Converter 검증 (2026-08-31)
+
+작업 시작 시 `main` 작업 트리는 깨끗했다. 기존 Registry의 Converter를 available로 전환했고 공통 동적 도구 라우트가 `/tools/subtitle-converter`를 제공한다. 이번 작업에서는 커밋·push하지 않았다.
+
+- 독립 변환 모듈은 기존 UTF-8 디코더·파서를 재사용한다. QA Rule/프리셋/임계값, 기존 파서·계산 정책·저장 모듈·QA 화면·PRD는 변경하지 않았다.
+- 단위 테스트 9 suite / 133개 통과. 신규 16개로 양방향 형식·MIME·파일명, 왕복 Cue 시간/본문, 원본 바이트, 비시간순 Cue·공백·Unicode·태그, 손상·빈 Cue·시간 역전·UTF-8·용량·Cue 한도, 메타데이터 손실 동의를 검증했다.
+- Chromium E2E 14개 통과. Converter 추가 3개에서 홈 진입, 양방향 미리보기/실제 다운로드 바이트·파일명·Blob MIME, 경고 동의 전 차단, 동의 취소/손상 파일 선택 후 이전 다운로드 제거, 서버 업로드 없음, 키보드 파일 선택→미리보기→다운로드를 확인했다. 기존 QA 5개와 나머지 준비 중 경로 차단도 통과했다.
+- 초기 테스트에서 일반 VTT에 설정 손실 경고가 발생하는 정규식 오탐을 수정했다. E2E 오류 검사는 Next.js 경로 알림과 혼동하지 않도록 main 내부로 한정했다. 초기화 전 파일 입력을 받지 않도록 hydration 완료 후 활성화하고 테스트도 enabled 상태를 확인한다. 이 보완 후 전체 E2E는 retry 없이 통과했다.
+- `npm run lint`, `npm run typecheck`, `npm run format:check`, `npm run build` 통과. 빌드에 QA와 Converter 두 경로가 사전 렌더링된다. 러너의 NO_COLOR/FORCE_COLOR 출력 색상 경고는 남아 있다.
+
+출력은 UTF-8/LF이며 원본 BOM·개행 포장 정보는 보존하지 않는다. VTT 메타데이터는 명시적 동의 후 제외하고 본문 태그는 문자 그대로 유지한다. 완전한 WebVTT 문법/시각 렌더링 검증은 아니며, 보수적으로 SRT 비연속 번호도 거부한다. 상세 변환 정책과 한도는 README의 Subtitle Converter 절에 기록했다.

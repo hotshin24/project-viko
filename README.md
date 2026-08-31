@@ -51,7 +51,7 @@ E2E는 `@playwright/test`와 Chromium 한 종류를 사용합니다. 기존 127.
 
 ## Tool Registry 플랫폼 구조
 
-- `/`: Registry의 6개 도구 탐색. QA만 사용 가능하며 준비 중 도구에는 실행 링크가 없습니다.
+- `/`: Registry의 6개 도구 탐색. QA와 Converter를 사용할 수 있으며 준비 중 도구에는 실행 링크가 없습니다.
 - `/tools/subtitle-qa`: 기존 QA 화면. sessionStorage 키·schema·복원·삭제, Worker·Rule·프리셋은 그대로입니다. 홈 왕복과 새로고침 후 저장본을 복원합니다.
 - `/tools/[toolId]`: Registry를 조회하는 공통 서버 라우트. 준비 중/알 수 없는 ID는 404이며 실행 코드를 로드하지 않습니다.
 - `src/lib/tools/registry.ts`: ID·이름·설명·경로·상태·입출력 형식의 단일 기준입니다. `available`에는 `loadWorkspace`가 필수이고 `coming-soon`에는 금지됩니다. 미래 도구의 세부 입출력 계약은 미정으로 표시합니다. QA 출력은 화면 리포트이며 파일 다운로드를 약속하지 않습니다.
@@ -60,3 +60,16 @@ E2E는 `@playwright/test`와 Chromium 한 종류를 사용합니다. 기존 127.
 새 도구 화면을 구현한 뒤 Registry에 설명·형식·상태와 화면 로더를 등록하면 홈 카드·공통 경로·페이지 제목이 연결됩니다. 별도 메뉴나 라우트 switch를 수정할 필요가 없습니다. ID는 단일 kebab-case 경로 세그먼트이고 path는 `/tools/{id}`여야 합니다. Registry 등록만으로 도구의 실제 기능이 구현되지는 않습니다. 홈 컴포넌트는 QA 실행 상태나 sessionStorage를 읽지 않습니다.
 
 이번 구조 변경은 설치된 Next.js 16.3.3 문서의 App Router, 비동기 params, generateStaticParams, notFound 계약을 따릅니다. AI/로그인/결제/DB 및 준비 중 도구의 실제 기능은 추가하지 않았습니다.
+
+## Subtitle Converter
+
+`/tools/subtitle-converter` 또는 홈의 **Subtitle Converter 시작**에서 SRT/VTT 선택 → 파싱 → 필요 시 손실 안내 확인 → 변환 미리보기 → 파일 다운로드 순서로 사용합니다.
+
+- `src/lib/subtitles/converter.ts`는 기존 UTF-8 디코더·파서를 재사용하며 UI와 독립적입니다. 서버·AI·저장소를 사용하지 않습니다. 5 MiB / 10,000 Cue 제한을 유지합니다.
+- Cue 순서(비시간순·중복 구간 포함), 정수 ms 타임코드, 본문 문자열·공백·태그·엔터티를 유지합니다. 자동 줄바꿈·싱크 수정·Unicode 정규화를 하지 않습니다. 출력은 UTF-8, LF 개행, 마지막 개행 1개이며 원본 BOM/CRLF 등 파일 포장 정보는 보존하지 않습니다. 원본 파일은 변경하지 않습니다.
+- SRT 출력은 1부터 연속 번호, 쉼표 밀리초와 `application/x-subrip;charset=utf-8` MIME을 사용합니다. VTT 출력은 `WEBVTT` 헤더, 점 밀리초, `text/vtt;charset=utf-8`입니다. 출력명은 원본 기본 이름의 확장자를 바꾸고 경로·제어 문자 등은 제거/대체합니다.
+- VTT 헤더 설명/메타데이터, NOTE/STYLE/REGION, Cue ID, 타임코드 뒤 배치 설정은 SRT에서 제외됩니다. 변환 전에 경고하고 체크박스 동의 전에는 미리보기·다운로드를 만들지 않습니다. 본문 태그는 삭제하지 않으며 SRT 플레이어에서 표시 의미가 달라질 수 있다는 경고를 함께 제공합니다.
+- 파서 진단(번호/구조/타임코드), 빈 Cue, 종료 ≤ 시작, 지원하지 않는 제어 문자, 비 UTF-8 입력은 차단합니다. QA처럼 손상 부분을 복구해 내보내지 않습니다. 직렬화 결과를 다시 파싱하여 Cue 수·시간·본문이 달라지면 차단합니다.
+- 새 파일 선택·손실 동의 해제 시 이전 결과를 지우고 Blob URL을 해제합니다. 늦게 완료된 이전 파일 읽기 결과는 폐기하며 화면 이탈 시 URL을 정리합니다. Converter 상태는 sessionStorage에 저장하지 않고 QA 저장 키를 건드리지 않습니다.
+
+제한: 완전한 WebVTT 렌더러/문법 검증기가 아니므로 복잡한 마크업의 시각적 동등성을 보장하지 않습니다. 파서가 허용하는 VTT 설정은 제거 경고 대상으로 다루며 모든 설정 문법을 검증하지 않습니다. 보수적으로 비연속 SRT 번호도 차단합니다. 처리는 입력 한도 내에서 브라우저 메인 스레드에서 이루어집니다. ASS/SSA, 인코딩 변환, 자동 수정은 지원하지 않습니다.
