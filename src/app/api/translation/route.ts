@@ -10,11 +10,13 @@ import {
 } from "../../../lib/translation/provider-error";
 import { translateTrack } from "../../../lib/translation/translate";
 import { TranslationValidationError } from "../../../lib/translation/validation";
+import { serverSupabase } from "../../../lib/supabase/server";
 
 export const runtime = "nodejs";
 
 const failures = {
   NOT_FOUND: [404, "요청한 기능을 사용할 수 없습니다."],
+  UNAUTHORIZED: [401, "로그인이 필요한 요청입니다."],
   FORBIDDEN: [403, "이 출처의 요청은 허용하지 않습니다."],
   INVALID_REQUEST: [400, "요청 언어·스타일·Cue 형식과 내용을 확인하세요."],
   REQUEST_TOO_LARGE: [413, "요청 크기 또는 Cue·본문 제한을 초과했습니다."],
@@ -58,6 +60,14 @@ function failure(code: keyof typeof failures) {
 export async function POST(request: Request): Promise<Response> {
   if (process.env.TRANSLATION_API_ENABLED !== "true")
     return failure("NOT_FOUND");
+  try {
+    const client = await serverSupabase();
+    if (!client) return failure("UNAUTHORIZED");
+    const { data, error } = await client.auth.getUser();
+    if (error || !data.user) return failure("UNAUTHORIZED");
+  } catch {
+    return failure("UNAUTHORIZED");
+  }
   // No CORS opt-in. Reject cross-origin browser requests even before parsing JSON.
   const origin = request.headers.get("origin");
   if (

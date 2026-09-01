@@ -1,10 +1,10 @@
 # Translation API
 
-`POST /api/translation`은 Node.js Route Handler다. `TRANSLATION_API_ENABLED`가 정확히 `true`일 때만 요청을 처리한다. 누락·빈 값·다른 값이면 본문을 읽거나 Provider를 생성하기 전에 404를 반환한다. 실제 배포 환경변수는 이번 작업에서 설정하지 않는다.
+`POST /api/translation`은 Node.js Route Handler다. `TRANSLATION_API_ENABLED`가 정확히 `true`일 때만 요청을 처리한다. 누락·빈 값·다른 값이면 본문을 읽거나 Provider를 생성하기 전에 404를 반환한다. 활성화된 경우에는 서버에서 확인한 Supabase 로그인 세션이 추가로 필요하다. 실제 배포 환경변수는 이번 작업에서 설정하지 않는다.
 
 ## 구조
 
-- `src/app/api/translation/route.ts`: 플래그·출처 검사, Core/Provider 연결, 응답 필드 선택, 안전한 오류 매핑.
+- `src/app/api/translation/route.ts`: 플래그·Supabase 세션·출처 검사, Core/Provider 연결, 응답 필드 선택, 안전한 오류 매핑.
 - `src/lib/translation/api-request.ts`: 스트림 크기 제한, UTF-8/JSON 및 엄격한 런타임 스키마 검증, 기존 Track으로 메모리 내 연결.
 - 기존 `createTranslationBatches`로 사전 검증 → `createOpenAITranslationProvider` → `translateTrack`의 배치·결과 검증. 전체 완료 후에만 JSON 응답. Core·Provider는 변경하지 않는다.
 
@@ -54,6 +54,7 @@ Content-Type은 `application/json`, 본문은 UTF-8이다. 아래처럼 모든 �
 | HTTP | 코드                                                                              |
 | ---- | --------------------------------------------------------------------------------- |
 | 404  | NOT_FOUND: 기능 플래그 비활성화                                                   |
+| 401  | UNAUTHORIZED: Supabase 설정·로그인 세션 확인 실패                                 |
 | 403  | FORBIDDEN: cross-origin/cross-site 요청                                           |
 | 400  | INVALID_REQUEST: JSON·스키마·Core 사전 검증 실패                                  |
 | 413  | REQUEST_TOO_LARGE: 요청·Cue 수·본문 크기 초과                                     |
@@ -71,16 +72,17 @@ Provider 오류의 message/cause/SDK 본문은 사용하지 않고 Route의 고�
 ## 보안과 운영 제한
 
 - `OPENAI_API_KEY`, `OPENAI_TRANSLATION_MODEL`은 기존 서버 전용 Provider만 읽는다. 예시 파일에는 빈 값만 둔다.
+- 플래그 확인 후 서버 Supabase Client의 `getUser()`로 최신 사용자를 확인한다. 설정 누락·비로그인·만료·위조·Auth 장애는 요청 본문을 읽거나 Provider를 생성하기 전에 고정 401로 종료한다.
 - 로그·영구 저장·응답 본문 기록을 추가하지 않는다. 외부 프록시/APM의 본문 캡처 여부는 배포 시 별도로 확인해야 한다.
 - CORS 허용 헤더를 추가하지 않는다. Origin이 있으면 요청 URL의 origin과 정확히 같아야 하며 `Sec-Fetch-Site: cross-site`도 차단한다. Origin 없는 서버 요청은 허용한다. 프록시의 origin 구성은 배포 환경에서 확인해야 한다.
-- **플래그와 출처 검사는 인증이 아니다.** 로그인·사용량 제한·동시 작업 제한이 없으므로, 접근 통제가 없는 공개 배포에서는 플래그를 켜지 않는다. 서버 간 호출자는 Origin을 생략하거나 위조할 수 있다.
+- 인증 오류에는 쿠키·토큰·사용자 이메일·Supabase 오류 본문을 포함하지 않는다. 로그인 확인은 사용자별 권한·사용량 제한을 제공하지 않는다.
 - 전체 작업의 실행 시간·요청 본문 수신 시간·클라이언트 연결 종료에 따른 취소 정책은 아직 없다. 호스팅의 시간 제한과 장시간 다중 배치 처리 정책을 실제 활성화 전에 정해야 한다.
 - POST 이외 메서드는 Next.js 기본 처리를 따른다. UI·Registry는 여전히 비활성 상태이며 QA·Converter를 수정하지 않는다.
 
 ## 검증
 
-`tests/translation-api.test.ts`는 Route를 직접 실행하고 기존 Core는 실제로 사용하며 Provider 경계만 모킹한다. fetch도 차단해 실수로 라이브 API를 호출할 수 없게 한다. 플래그·설정 누락, 정상 다중 배치, 빈 Cue 보존, 잘못된 입력, 바이트 경계·스트림 취소, Provider별 안전한 오류, 비노출과 부분 결과 차단을 검증한다. 기존 서버 전용 컴파일 차단 테스트도 유지한다.
+`tests/translation-api.test.ts`는 Route를 직접 실행하고 기존 Core는 실제로 사용하며 Supabase와 Provider 경계만 모킹한다. fetch도 차단해 실수로 라이브 API를 호출할 수 없게 한다. 플래그, 비로그인·만료·위조 세션, 정상 세션 진입, 설정 누락, 정상 다중 배치, 빈 Cue 보존, 잘못된 입력, 바이트 경계·스트림 취소, Provider별 안전한 오류, 비노출과 부분 결과 차단을 검증한다. 기존 서버 전용 컴파일 차단 테스트도 유지한다.
 
 실행: `npm run lint`, `npm run typecheck`, `npm run test`, `npm run format:check`, `npm run build`. 전체 테스트는 다른 무거운 명령과 겹치지 않게 실행한다. 실제 API·키·사용자 자막은 사용하지 않는다.
 
-검증 결과: Route 테스트 56개를 포함한 13 suite / 253개 테스트, 린트·타입·포맷·프로덕션 빌드 통과. 빌드에서 `/api/translation`이 동적 서버 경로로 생성되며, 클라이언트 JS 46개에서 Provider·API 키·모델 환경변수·SDK 관련 표식은 발견되지 않았다. HTTP 경계를 넘는 라이브 API 검증은 수행하지 않았다.
+검증 결과: Route 테스트 61개를 포함한 14 suite / 305개 테스트, E2E 18개, 린트·타입·포맷·프로덕션 빌드 통과. 빌드에서 `/api/translation`이 동적 서버 경로로 생성된다. 실제 Supabase/OpenAI 호출은 수행하지 않았다.

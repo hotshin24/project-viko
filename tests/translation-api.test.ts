@@ -8,7 +8,14 @@ import {
 import { TRANSLATION_REQUEST_LIMITS as limits } from "../src/lib/translation/api-request";
 import type { TranslationBatch } from "../src/lib/translation/types";
 
+const auth = vi.hoisted(() => ({
+  serverSupabase: vi.fn(),
+  getUser: vi.fn(),
+}));
 vi.mock("server-only", () => ({}));
+vi.mock("../src/lib/supabase/server", () => ({
+  serverSupabase: auth.serverSupabase,
+}));
 vi.mock("../src/lib/translation/providers/openai", () => ({
   createOpenAITranslationProvider: vi.fn(),
 }));
@@ -56,6 +63,13 @@ beforeEach(() => {
   translate.mockReset();
   translate.mockImplementation(good);
   factory.mockReturnValue({ translateBatch: translate });
+  auth.serverSupabase.mockReset();
+  auth.getUser.mockReset();
+  auth.serverSupabase.mockResolvedValue({ auth: { getUser: auth.getUser } });
+  auth.getUser.mockResolvedValue({
+    data: { user: { id: "synthetic-user" } },
+    error: null,
+  });
 });
 afterEach(() => {
   expect(noNetwork).not.toHaveBeenCalled();
@@ -79,9 +93,52 @@ test.each([undefined, "", "false", "TRUE", "1"])(
   async (flag) => {
     vi.stubEnv("TRANSLATION_API_ENABLED", flag);
     await errorCheck(request("invalid"), 404, "NOT_FOUND");
+    expect(auth.serverSupabase).not.toHaveBeenCalled();
     expect(factory).not.toHaveBeenCalled();
   },
 );
+
+test.each([
+  ["missing Supabase configuration", null],
+  ["missing user", { data: { user: null }, error: null }],
+  [
+    "invalid or expired session",
+    { data: { user: null }, error: { message: "PRIVATE_AUTH_ERROR" } },
+  ],
+] as const)(
+  "unauthenticated: %s returns 401 before body/provider",
+  async (_label, result) => {
+    if (result === null) auth.serverSupabase.mockResolvedValueOnce(null);
+    else auth.getUser.mockResolvedValueOnce(result);
+    const req = request("private source text");
+    const body = await errorCheck(req, 401, "UNAUTHORIZED");
+    expect(req.bodyUsed).toBe(false);
+    expect(factory).not.toHaveBeenCalled();
+    expect(JSON.stringify(body)).not.toMatch(
+      /private source|PRIVATE_AUTH_ERROR/,
+    );
+  },
+);
+
+test("Auth service failure returns fixed 401 without logs or provider", async () => {
+  auth.getUser.mockRejectedValueOnce(new Error("PRIVATE_AUTH_ERROR"));
+  const spies = [
+    vi.spyOn(console, "log"),
+    vi.spyOn(console, "error"),
+    vi.spyOn(console, "warn"),
+    vi.spyOn(console, "info"),
+    vi.spyOn(console, "debug"),
+  ];
+  await errorCheck(request("private source text"), 401, "UNAUTHORIZED");
+  expect(factory).not.toHaveBeenCalled();
+  spies.forEach((spy) => expect(spy).not.toHaveBeenCalled());
+});
+
+test("verified session enters the existing request pipeline", async () => {
+  expect((await POST(request())).status).toBe(200);
+  expect(auth.getUser).toHaveBeenCalledTimes(1);
+  expect(factory).toHaveBeenCalledTimes(1);
+});
 
 test.each(["OPENAI_API_KEY", "OPENAI_TRANSLATION_MODEL"] as const)(
   "missing server config %s returns safe 503",
