@@ -44,9 +44,10 @@ test("keyboard-only flow: file chooser, preset, run, both filters, cue, details,
     "outline-style",
     "solid",
   );
-  const chooserPromise = page.waitForEvent("filechooser");
-  await page.keyboard.press("Enter");
-  const chooser = await chooserPromise;
+  const [chooser] = await Promise.all([
+    page.waitForEvent("filechooser"),
+    fileInput(page).press("Enter"),
+  ]);
   // Only OS file selection is supplied by the runner. The chooser was opened by Enter.
   await chooser.setFiles(fixture("long-korean.srt"));
   await page.keyboard.press("Tab");
