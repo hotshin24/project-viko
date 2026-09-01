@@ -11,6 +11,7 @@ import type { TranslationBatch } from "../src/lib/translation/types";
 const auth = vi.hoisted(() => ({
   serverSupabase: vi.fn(),
   getUser: vi.fn(),
+  rpc: vi.fn(),
 }));
 vi.mock("server-only", () => ({}));
 vi.mock("../src/lib/supabase/server", () => ({
@@ -65,7 +66,23 @@ beforeEach(() => {
   factory.mockReturnValue({ translateBatch: translate });
   auth.serverSupabase.mockReset();
   auth.getUser.mockReset();
-  auth.serverSupabase.mockResolvedValue({ auth: { getUser: auth.getUser } });
+  auth.rpc.mockReset();
+  auth.rpc.mockResolvedValue({
+    data: [
+      {
+        reserved: true,
+        usage_date: "2026-09-01",
+        request_count: 1,
+        cue_count: 1,
+        source_grapheme_count: 16,
+      },
+    ],
+    error: null,
+  });
+  auth.serverSupabase.mockResolvedValue({
+    auth: { getUser: auth.getUser },
+    rpc: auth.rpc,
+  });
   auth.getUser.mockResolvedValue({
     data: { user: { id: "synthetic-user" } },
     error: null,
@@ -94,6 +111,7 @@ test.each([undefined, "", "false", "TRUE", "1"])(
     vi.stubEnv("TRANSLATION_API_ENABLED", flag);
     await errorCheck(request("invalid"), 404, "NOT_FOUND");
     expect(auth.serverSupabase).not.toHaveBeenCalled();
+    expect(auth.rpc).not.toHaveBeenCalled();
     expect(factory).not.toHaveBeenCalled();
   },
 );
@@ -113,6 +131,7 @@ test.each([
     const req = request("private source text");
     const body = await errorCheck(req, 401, "UNAUTHORIZED");
     expect(req.bodyUsed).toBe(false);
+    expect(auth.rpc).not.toHaveBeenCalled();
     expect(factory).not.toHaveBeenCalled();
     expect(JSON.stringify(body)).not.toMatch(
       /private source|PRIVATE_AUTH_ERROR/,
@@ -131,13 +150,68 @@ test("Auth service failure returns fixed 401 without logs or provider", async ()
   ];
   await errorCheck(request("private source text"), 401, "UNAUTHORIZED");
   expect(factory).not.toHaveBeenCalled();
+  expect(auth.rpc).not.toHaveBeenCalled();
   spies.forEach((spy) => expect(spy).not.toHaveBeenCalled());
 });
 
 test("verified session enters the existing request pipeline", async () => {
   expect((await POST(request())).status).toBe(200);
   expect(auth.getUser).toHaveBeenCalledTimes(1);
+  expect(auth.rpc).toHaveBeenCalledTimes(1);
   expect(factory).toHaveBeenCalledTimes(1);
+});
+
+test("reserves Cue count and standard graphemes before provider", async () => {
+  const data = {
+    ...payload(),
+    cues: [cue(1, "👍🏽"), cue(2, "e\u0301"), cue(3, "👨‍👩‍👧‍👦")],
+  };
+  expect((await POST(request(data))).status).toBe(200);
+  expect(auth.rpc).toHaveBeenCalledWith("reserve_translation_usage", {
+    p_cue_count: 3,
+    p_source_grapheme_count: 3,
+  });
+  expect(factory).toHaveBeenCalledTimes(1);
+});
+
+test("usage limit returns safe 429 before provider", async () => {
+  auth.rpc.mockResolvedValueOnce({
+    data: [
+      {
+        reserved: false,
+        usage_date: "2026-09-01",
+        request_count: 10,
+        cue_count: 500,
+        source_grapheme_count: 20000,
+      },
+    ],
+    error: null,
+  });
+  const body = await errorCheck(request(), 429, "USAGE_LIMIT_EXCEEDED");
+  expect(JSON.stringify(body)).not.toMatch(/10|500|20000|2026-09-01/);
+  expect(factory).not.toHaveBeenCalled();
+});
+
+test.each([
+  ["RPC error", { data: null, error: { message: "PRIVATE_DB_ERROR" } }],
+  ["missing row", { data: [], error: null }],
+  [
+    "multiple rows",
+    { data: [{ reserved: true }, { reserved: true }], error: null },
+  ],
+  ["invalid row", { data: [{ reserved: "true" }], error: null }],
+] as const)("%s returns safe 503 before provider", async (_label, result) => {
+  auth.rpc.mockResolvedValueOnce(result);
+  const body = await errorCheck(request(), 503, "USAGE_SERVICE_UNAVAILABLE");
+  expect(factory).not.toHaveBeenCalled();
+  expect(JSON.stringify(body)).not.toContain("PRIVATE_DB_ERROR");
+});
+
+test("thrown RPC failure returns safe 503 without provider", async () => {
+  auth.rpc.mockRejectedValueOnce(new Error("PRIVATE_DB_ERROR source text"));
+  const body = await errorCheck(request(), 503, "USAGE_SERVICE_UNAVAILABLE");
+  expect(factory).not.toHaveBeenCalled();
+  expect(JSON.stringify(body)).not.toMatch(/PRIVATE_DB_ERROR|source text/);
 });
 
 test.each(["OPENAI_API_KEY", "OPENAI_TRANSLATION_MODEL"] as const)(
@@ -224,6 +298,7 @@ test.each([
   ["surrogate", { ...payload(), cues: [cue(1, "\ud800")] }],
 ])("rejects %s before provider", async (_label, body) => {
   await errorCheck(request(body), 400, "INVALID_REQUEST");
+  expect(auth.rpc).not.toHaveBeenCalled();
   expect(factory).not.toHaveBeenCalled();
 });
 
@@ -245,6 +320,7 @@ test.each([
   ["raw request", " ".repeat(limits.maxBytes + 1)],
 ])("rejects %s limit before provider", async (_label, data) => {
   await errorCheck(request(data), 413, "REQUEST_TOO_LARGE");
+  expect(auth.rpc).not.toHaveBeenCalled();
   expect(factory).not.toHaveBeenCalled();
 });
 
@@ -275,6 +351,7 @@ test("declared oversized Content-Length rejects before reading body", async () =
   });
   await errorCheck(req, 413, "REQUEST_TOO_LARGE");
   expect(req.bodyUsed).toBe(false);
+  expect(auth.rpc).not.toHaveBeenCalled();
   expect(factory).not.toHaveBeenCalled();
 });
 
@@ -297,6 +374,7 @@ test("chunked body with dishonest Content-Length is bounded and cancelled", asyn
   await errorCheck(req, 413, "REQUEST_TOO_LARGE");
   expect(cancelled).toHaveBeenCalled();
   expect(chunks).toBeLessThan(8);
+  expect(auth.rpc).not.toHaveBeenCalled();
   expect(factory).not.toHaveBeenCalled();
 });
 
@@ -307,6 +385,7 @@ test("invalid UTF-8 is rejected", async () => {
     body: new Uint8Array([255]),
   });
   await errorCheck(req, 400, "INVALID_REQUEST");
+  expect(auth.rpc).not.toHaveBeenCalled();
   expect(factory).not.toHaveBeenCalled();
 });
 
@@ -316,6 +395,7 @@ test("content type rejects simple cross-site forms", async () => {
     415,
     "UNSUPPORTED_MEDIA_TYPE",
   );
+  expect(auth.rpc).not.toHaveBeenCalled();
   expect(factory).not.toHaveBeenCalled();
 });
 test.each<Record<string, string>>([
@@ -324,6 +404,7 @@ test.each<Record<string, string>>([
   { "sec-fetch-site": "cross-site" },
 ])("cross-origin request blocked", async (headers) => {
   await errorCheck(request(payload(), headers), 403, "FORBIDDEN");
+  expect(auth.rpc).not.toHaveBeenCalled();
   expect(factory).not.toHaveBeenCalled();
 });
 

@@ -11,6 +11,7 @@ import {
 import { translateTrack } from "../../../lib/translation/translate";
 import { TranslationValidationError } from "../../../lib/translation/validation";
 import { serverSupabase } from "../../../lib/supabase/server";
+import { cueMetrics } from "../../../lib/subtitles/metrics";
 
 export const runtime = "nodejs";
 
@@ -21,6 +22,14 @@ const failures = {
   INVALID_REQUEST: [400, "요청 언어·스타일·Cue 형식과 내용을 확인하세요."],
   REQUEST_TOO_LARGE: [413, "요청 크기 또는 Cue·본문 제한을 초과했습니다."],
   UNSUPPORTED_MEDIA_TYPE: [415, "UTF-8 application/json 요청만 지원합니다."],
+  USAGE_LIMIT_EXCEEDED: [
+    429,
+    "오늘의 번역 사용 한도에 도달했습니다. 다음 UTC 날짜에 다시 시도하세요.",
+  ],
+  USAGE_SERVICE_UNAVAILABLE: [
+    503,
+    "번역 사용량을 확인할 수 없습니다. 잠시 후 다시 시도하세요.",
+  ],
   CONFIGURATION: [503, "번역 서비스를 사용할 준비가 되지 않았습니다."],
   AUTHENTICATION: [
     502,
@@ -57,17 +66,47 @@ function failure(code: keyof typeof failures) {
   );
 }
 
+type UsageReservation = {
+  reserved: boolean;
+  usage_date: string;
+  request_count: number;
+  cue_count: number;
+  source_grapheme_count: number;
+};
+
+function isUsageReservation(value: unknown): value is UsageReservation {
+  if (typeof value !== "object" || value === null || Array.isArray(value))
+    return false;
+  const reservation = value as Record<string, unknown>;
+  return (
+    typeof reservation.reserved === "boolean" &&
+    typeof reservation.usage_date === "string" &&
+    /^\d{4}-\d{2}-\d{2}$/.test(reservation.usage_date) &&
+    typeof reservation.request_count === "number" &&
+    Number.isSafeInteger(reservation.request_count) &&
+    reservation.request_count >= 0 &&
+    typeof reservation.cue_count === "number" &&
+    Number.isSafeInteger(reservation.cue_count) &&
+    reservation.cue_count >= 0 &&
+    typeof reservation.source_grapheme_count === "number" &&
+    Number.isSafeInteger(reservation.source_grapheme_count) &&
+    reservation.source_grapheme_count >= 0
+  );
+}
+
 export async function POST(request: Request): Promise<Response> {
   if (process.env.TRANSLATION_API_ENABLED !== "true")
     return failure("NOT_FOUND");
+  let client: Awaited<ReturnType<typeof serverSupabase>>;
   try {
-    const client = await serverSupabase();
+    client = await serverSupabase();
     if (!client) return failure("UNAUTHORIZED");
     const { data, error } = await client.auth.getUser();
     if (error || !data.user) return failure("UNAUTHORIZED");
   } catch {
     return failure("UNAUTHORIZED");
   }
+  if (!client) return failure("UNAUTHORIZED");
   // No CORS opt-in. Reject cross-origin browser requests even before parsing JSON.
   const origin = request.headers.get("origin");
   if (
@@ -79,6 +118,28 @@ export async function POST(request: Request): Promise<Response> {
     const { track, options, batchCount } = validateTranslationRequest(
       await readTranslationJSON(request),
     );
+    const sourceGraphemeCount = track.cues.reduce(
+      (total, cue) => total + cueMetrics(cue).characters,
+      0,
+    );
+    let reservationResult: { data: unknown; error: unknown };
+    try {
+      reservationResult = await client.rpc("reserve_translation_usage", {
+        p_cue_count: track.cues.length,
+        p_source_grapheme_count: sourceGraphemeCount,
+      });
+    } catch {
+      return failure("USAGE_SERVICE_UNAVAILABLE");
+    }
+    if (
+      reservationResult.error ||
+      !Array.isArray(reservationResult.data) ||
+      reservationResult.data.length !== 1 ||
+      !isUsageReservation(reservationResult.data[0])
+    )
+      return failure("USAGE_SERVICE_UNAVAILABLE");
+    if (!reservationResult.data[0].reserved)
+      return failure("USAGE_LIMIT_EXCEEDED");
     const result = await translateTrack(
       track,
       createOpenAITranslationProvider(),
