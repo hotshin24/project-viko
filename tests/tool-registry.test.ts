@@ -22,7 +22,7 @@ test("only available tools have executable workspace loaders", () => {
     TOOL_REGISTRY.filter((tool) => tool.status === "available").map(
       (tool) => tool.id,
     ),
-  ).toEqual(["subtitle-qa", "subtitle-converter"]);
+  ).toEqual(["subtitle-qa", "subtitle-translator", "subtitle-converter"]);
   for (const tool of TOOL_REGISTRY) {
     if (tool.status === "available")
       expect(tool.loadWorkspace).toBeTypeOf("function");

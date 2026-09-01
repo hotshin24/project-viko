@@ -15,7 +15,7 @@ export type ToolDefinition = ToolMetadata &
     | {
         readonly status: "available";
         readonly loadWorkspace: () => Promise<
-          ComponentType<{ toolName: string }>
+          ComponentType<{ toolName: string; authenticated: boolean }>
         >;
       }
     | { readonly status: "coming-soon"; readonly loadWorkspace?: never }
@@ -54,14 +54,16 @@ export const TOOL_REGISTRY = [
     outputFormats: ["미정"],
   },
   {
-    id: "korean-subtitle-translator",
+    id: "subtitle-translator",
     name: "Korean Subtitle Translator",
-    description:
-      "외국어 자막을 자연스러운 한국어로 번역하는 도구를 준비하고 있습니다.",
-    path: "/tools/korean-subtitle-translator",
-    status: "coming-soon",
-    inputFormats: ["미정"],
-    outputFormats: ["미정"],
+    description: "외국어 SRT·VTT를 자연스러운 한국어 자막으로 번역하세요.",
+    path: "/tools/subtitle-translator",
+    status: "available",
+    inputFormats: ["SRT", "VTT"],
+    outputFormats: ["SRT", "VTT"],
+    loadWorkspace: async () =>
+      (await import("../../components/translator-workspace"))
+        .TranslatorWorkspace,
   },
   {
     id: "glossary",

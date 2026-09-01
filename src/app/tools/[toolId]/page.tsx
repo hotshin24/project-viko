@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PlatformHeader } from "../../../components/platform-header";
 import { getTool, TOOL_REGISTRY } from "../../../lib/tools/registry";
+import { verifiedEmail } from "../../../lib/supabase/server";
 
 type ToolPageProps = { params: Promise<{ toolId: string }> };
 export function generateStaticParams() {
@@ -26,10 +27,11 @@ export async function generateMetadata({
 export default async function ToolPage({ params }: ToolPageProps) {
   const tool = availableTool((await params).toolId);
   const Workspace = await tool.loadWorkspace();
+  const email = await verifiedEmail();
   return (
     <>
-      <PlatformHeader toolName={tool.name} />
-      <Workspace toolName={tool.name} />
+      <PlatformHeader toolName={tool.name} verifiedEmail={email} />
+      <Workspace toolName={tool.name} authenticated={email !== null} />
     </>
   );
 }

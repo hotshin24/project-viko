@@ -1,7 +1,12 @@
 /** Exact allowlist prevents URL normalization, encoded redirects and auth/API loops. */
 export function safeNext(value: unknown): string {
   return typeof value === "string" &&
-    ["/", "/tools/subtitle-qa", "/tools/subtitle-converter"].includes(value)
+    [
+      "/",
+      "/tools/subtitle-qa",
+      "/tools/subtitle-converter",
+      "/tools/subtitle-translator",
+    ].includes(value)
     ? value
     : "/";
 }

@@ -13,11 +13,12 @@ export default function Page() {
             영상과 자막을 위한 <span>VIKO 도구 모음.</span>
           </h1>
           <p className="intro">
-            외국어 영상에서 자연스러운 한국어 자막까지. Subtitle QA와
-            Converter로 자막 검사와 SRT·VTT 변환을 내 기기에서 처리하세요.
+            외국어 영상에서 자연스러운 한국어 자막까지. Subtitle QA, Converter,
+            Korean Subtitle Translator를 한곳에서 사용하세요.
           </p>
           <p className="intro">
-            AI 번역·수정 및 다른 도구는 준비 중이며 아직 사용할 수 없습니다.
+            번역은 로그인 후 사용하며 자막 검사와 형식 변환은 내 기기에서
+            처리합니다. 다른 도구는 준비 중입니다.
           </p>
         </section>
         <section aria-labelledby="tools-heading">

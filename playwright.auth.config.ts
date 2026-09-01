@@ -1,7 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "./tests/e2e",
-  testMatch: "auth-flow.spec.ts",
+  testMatch: ["auth-flow.spec.ts", "translator.spec.ts"],
   testIgnore: "**/._*",
   workers: 1,
   retries: 0,

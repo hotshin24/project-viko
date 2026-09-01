@@ -3,8 +3,15 @@ import { AuthStatus } from "./auth-status";
 import { verifiedEmail } from "../lib/supabase/server";
 import { supabaseConfig } from "../lib/supabase/config";
 
-export async function PlatformHeader({ toolName }: { toolName?: string }) {
-  const email = await verifiedEmail();
+export async function PlatformHeader({
+  toolName,
+  verifiedEmail: suppliedEmail,
+}: {
+  toolName?: string;
+  verifiedEmail?: string | null;
+}) {
+  const email =
+    suppliedEmail === undefined ? await verifiedEmail() : suppliedEmail;
   return (
     <>
       <a className="skip-link" href="#main">

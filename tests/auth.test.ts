@@ -102,10 +102,12 @@ test("only publishable keys accepted", () => {
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "not-a-publishable-key");
   expect(supabaseConfig()).toBeNull();
 });
-test.each(["/", "/tools/subtitle-qa", "/tools/subtitle-converter"])(
-  "safe internal %s",
-  (path) => expect(safeNext(path)).toBe(path),
-);
+test.each([
+  "/",
+  "/tools/subtitle-qa",
+  "/tools/subtitle-converter",
+  "/tools/subtitle-translator",
+])("safe internal %s", (path) => expect(safeNext(path)).toBe(path));
 test.each([
   undefined,
   ["/"],
